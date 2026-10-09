@@ -1,0 +1,20 @@
+{
+  "name": "aerofleet",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3"
+  },
+  "dependencies": {
+    "@types/three": "^0.186.0",
+    "three": "^0.186.1"
+  }
+}
