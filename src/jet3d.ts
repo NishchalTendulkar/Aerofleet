@@ -376,6 +376,9 @@ export function getJet3DInstance(): Jet3DController {
   const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.7);
   scene.add(ambientLight);
 
+  const hemiLight = new THREE.HemisphereLight(0xe2e8f0, 0x1e293b, 0.7);
+  scene.add(hemiLight);
+
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
   keyLight.position.set(-5, 14, 12);
   scene.add(keyLight);
@@ -462,7 +465,7 @@ export function getJet3DInstance(): Jet3DController {
 
     <div style="margin-bottom:8px">
       <label style="display:block;font-size:11px;font-weight:600;color:#94a3b8;margin-bottom:3px">Shell opacity</label>
-      <input type="range" id="slider3d-shell" min="0" max="1" step="0.01" value="0.10" style="width:100%;accent-color:#0284c7;cursor:pointer">
+      <input type="range" id="slider3d-shell" min="0" max="1" step="0.01" value="1.0" style="width:100%;accent-color:#0284c7;cursor:pointer">
     </div>
 
     <div style="margin-bottom:8px">
@@ -538,6 +541,7 @@ export function getJet3DInstance(): Jet3DController {
     shellMaterials.forEach(mat => {
       (mat as any).opacity = Math.max(0.01, Math.min(1.0, val));
       mat.transparent = val < 0.99;
+      mat.depthWrite = val >= 0.99;
       mat.needsUpdate = true;
     });
   }
@@ -1011,27 +1015,29 @@ export function getJet3DInstance(): Jet3DController {
 
         classifiedMeshes.push(child);
 
-        // Track translucent shell materials for shell opacity slider without degrading original PBR materials
+        // Handle canopy glass separately from airframe shell
         if (child.material) {
-          const mat = child.material;
+          const mat = child.material as any;
           const matName = (mat.name || '').toLowerCase();
-          if (
-            matName.includes('skin') ||
-            matName.includes('canopy') ||
-            matName.includes('transparent') ||
-            mat.transparent ||
-            mat.opacity < 0.9
-          ) {
+          if (matName.includes('canopy')) {
             mat.transparent = true;
-            mat.depthWrite = true;
+            mat.opacity = 0.22;
+            mat.depthWrite = false;
+            mat.needsUpdate = true;
+          } else if (
+            matName.includes('skin') ||
+            matName.includes('wing panel') ||
+            matName.includes('fuselage') ||
+            matName.includes('transparent')
+          ) {
             shellMaterials.add(mat);
           }
         }
       }
     });
 
-    // Initialize shell opacity to 0.10 (crisp interior visibility + translucent outer skin)
-    updateShellOpacity(0.10);
+    // Initialize shell opacity to 1.0 (authentic solid metallic fighter jet finish)
+    updateShellOpacity(1.0);
 
     loadingOverlay.style.opacity = '0';
     setTimeout(() => loadingOverlay.remove(), 400);
